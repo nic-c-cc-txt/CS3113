@@ -1,0 +1,13 @@
+how most games work
+
+Startup();
+
+while (gameIsRunning) {
+	ProcessInput();
+	Update();
+	Render();
+}
+
+Shutdown();
+
+--------------------------
