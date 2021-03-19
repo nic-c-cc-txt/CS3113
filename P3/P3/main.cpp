@@ -16,7 +16,7 @@
 #include "stb_image.h"
 
 #include "Entity.h"
-#define PLATFORM_COUNT 25
+#define PLATFORM_COUNT 30
 #define WINPLATFORM_COUNT 2
 struct GameState {
     Entity* player;
@@ -53,7 +53,7 @@ GLuint LoadTexture(const char* filePath) {
     return textureID;
 }
 
-GLuint fontTextureID = LoadTexture("font1.png");
+GLuint fontTextureID;
 
 
 void DrawText(ShaderProgram* program, GLuint fontTextureID, std::string text,
@@ -142,7 +142,7 @@ void Initialize() {
     state.player = new Entity();
     state.player->position = glm::vec3(0, 4, 0);
     state.player->movement = glm::vec3(0);
-    state.player->acceleration = glm::vec3(0.0f, -1.0f, 0);
+    state.player->acceleration = glm::vec3(0.0f, -0.5f, 0);
     state.player->speed = 2.0f;
     state.player->textureID = LoadTexture("mike.png");
 
@@ -166,7 +166,7 @@ void Initialize() {
 
 
     GLuint platformTextureID = LoadTexture("platformPack_tile016.png");
-    GLuint winplatformTextureID = LoadTexture("platformPack_tile015.png");
+    GLuint winplatformTextureID = LoadTexture("platformPack_tile013.png");
 
     state.platforms[0].textureID = platformTextureID;
     state.platforms[0].position = glm::vec3(-1, -3.25f, 0);
@@ -246,6 +246,21 @@ void Initialize() {
     state.platforms[24].textureID = platformTextureID;
     state.platforms[24].position = glm::vec3(5, 3.75f, 0);
 
+    state.platforms[25].textureID = platformTextureID;
+    state.platforms[25].position = glm::vec3(4, 0.75f, 0);
+
+    state.platforms[26].textureID = platformTextureID;
+    state.platforms[26].position = glm::vec3(3, 0.75f, 0);
+
+    state.platforms[27].textureID = platformTextureID;
+    state.platforms[27].position = glm::vec3(2, 0.75f, 0);
+
+    state.platforms[28].textureID = platformTextureID;
+    state.platforms[28].position = glm::vec3(1.5, 0.75f, 0);
+
+    state.platforms[29].textureID = platformTextureID;
+    state.platforms[29].position = glm::vec3(-4, 0.75f, 0);
+
     state.winPlatform[0].textureID = winplatformTextureID;
     state.winPlatform[0].position = glm::vec3(4, -3.25f, 0);
 
@@ -261,8 +276,15 @@ void Initialize() {
     }
 
     state.player->entityType = PLAYER;
-    state.platforms->entityType = PLATFORM;
+    for (int i = 0; i < PLATFORM_COUNT; i++) {
+        state.platforms[i].entityType = PLATFORM;
+    }
+    for (int i = 0; i < PLATFORM_COUNT; i++) {
+        state.winPlatform[i].entityType = WINPLATFORM;
+    }
+    //state.platforms->entityType = PLATFORM;
     state.winPlatform->entityType = WINPLATFORM;
+    fontTextureID = LoadTexture("font1.png");
 }
 
 void ProcessInput() {
@@ -297,13 +319,27 @@ void ProcessInput() {
 
     const Uint8* keys = SDL_GetKeyboardState(NULL);
 
+    if (state.player->lastCollision == WINPLATFORM) {
+        state.player->movement.x = 0.0f;
+        state.player->acceleration.x = 0.0f;
+        return;
+    }
+
+    else if (state.player->lastCollision == PLATFORM) {
+        state.player->movement.x = 0.0f;
+        state.player->acceleration.x = 0.0f;
+        return;
+    }
+
     if (keys[SDL_SCANCODE_LEFT]) {
         state.player->movement.x = -1.0f;
+        state.player->acceleration.x = -3.0f;
         //state.player->animIndices = state.player->animLeft;
         
     }
     else if (keys[SDL_SCANCODE_RIGHT]) {
         state.player->movement.x = 1.0f;
+        state.player->acceleration.x = 3.0f;
         //state.player->animIndices = state.player->animRight;
     }
 
@@ -349,11 +385,15 @@ void Render() {
     for (int i = 0; i < WINPLATFORM_COUNT; i++) {
         state.winPlatform[i].Render(&program);
     }
-    DrawText(&program, fontTextureID, "Hello!", 1, -0.5f, glm::vec3(0, 1, 0));
+    //DrawText(&program, fontTextureID, "Mission Failed!", 1, -0.5f, glm::vec3(-3.25, 0, 0));
     state.player->Render(&program);
     
     if (state.player->lastCollision == WINPLATFORM) {
-        return;
+        DrawText(&program, fontTextureID, "Mission Successful!", 1, -0.5f, glm::vec3(-4.5, 0, 0));
+    }
+
+    if (state.player->lastCollision == PLATFORM) {
+        DrawText(&program, fontTextureID, "Mission Failed!", 1, -0.5f, glm::vec3(-3.25, 0, 0));
     }
 
     SDL_GL_SwapWindow(displayWindow);
